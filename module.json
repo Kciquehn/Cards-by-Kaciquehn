@@ -1,17 +1,18 @@
 {
-  "id": "foundryvtt-cards",
-  "title": "FoundryVTT Cards",
-  "description": "Additional card decks for Foundry VTT.",
+  "id": "cards-by-kaciquehn",
+  "title": "Cards by Kaciquehn",
+  "description": "Additional card decks for Foundry VTT, maintained by Kaciquehn.",
   "version": "2.0.0",
   "authors": [
+    {
+      "name": "Kaciquehn",
+      "url": "https://github.com/Kciquehn"
+    },
     {
       "name": "Jay Colson",
       "email": "jay+foundry@karma.net",
       "url": "https://github.com/jcolson",
       "discord": "blackntan#0069"
-    },
-    {
-      "name": "Community v13 compatibility refresh"
     }
   ],
   "compatibility": {
@@ -21,7 +22,7 @@
   "packs": [
     {
       "name": "decks",
-      "label": "FoundryVTT Cards",
+      "label": "Cards by Kaciquehn",
       "path": "packs/decks.db",
       "type": "Cards",
       "ownership": {
@@ -31,12 +32,17 @@
       }
     }
   ],
+  "manifest": "https://raw.githubusercontent.com/Kciquehn/Cards-by-Kaciquehn/refs/heads/main/module.json",
+  "url": "https://github.com/Kciquehn/Cards-by-Kaciquehn",
+  "download": "https://github.com/Kciquehn/Cards-by-Kaciquehn/releases/latest/download/cards-by-kaciquehn.zip",
   "readme": "README.md",
+  "bugs": "https://github.com/Kciquehn/Cards-by-Kaciquehn/issues",
+  "changelog": "https://github.com/Kciquehn/Cards-by-Kaciquehn/releases",
   "media": [
     {
       "type": "setup",
-      "url": "modules/foundryvtt-cards/support/github-social-preview.jpg",
-      "thumbnail": "modules/foundryvtt-cards/support/screenshot.png"
+      "url": "modules/cards-by-kaciquehn/support/github-social-preview.jpg",
+      "thumbnail": "modules/cards-by-kaciquehn/support/screenshot.png"
     }
   ]
 }
