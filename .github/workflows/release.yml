@@ -25,7 +25,7 @@ jobs:
           mkdir -p dist
           zip -r dist/cards-by-kaciquehn.zip \
             module.json README.md .gitattributes .gitignore \
-            images packs support
+            images packs scripts support
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2

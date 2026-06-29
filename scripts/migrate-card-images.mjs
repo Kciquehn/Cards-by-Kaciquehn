@@ -14,24 +14,31 @@ function migratePath(value) {
   return value;
 }
 
-function migrateCardSource(card) {
+function migrateCardSource(card, deck) {
+  const source = card.toObject();
   const update = { _id: card.id };
   let changed = false;
 
-  const faces = card.faces.map((face) => {
-    const source = foundry.utils.deepClone(face);
-    const img = migratePath(source.img);
-    if (img !== source.img) {
-      source.img = img;
+  const faces = source.faces.map((face) => {
+    const faceSource = foundry.utils.deepClone(face);
+    const img = migratePath(faceSource.img);
+    if (img !== faceSource.img) {
+      faceSource.img = img;
       changed = true;
     }
-    return source;
+    return faceSource;
   });
 
-  const back = foundry.utils.deepClone(card.back ?? {});
+  const back = foundry.utils.deepClone(source.back ?? {});
   const backImg = migratePath(back.img);
   if (backImg !== back.img) {
     back.img = backImg;
+    changed = true;
+  }
+  if (!back.img && deck.img) {
+    back.img = deck.img;
+    back.name ||= `${deck.name} Back`;
+    back.text ||= "";
     changed = true;
   }
 
@@ -56,8 +63,8 @@ Hooks.once("ready", async () => {
       updatedDecks += 1;
     }
 
-    const cardUpdates = deck.cards
-      .map((card) => migrateCardSource(card))
+    const cardUpdates = Array.from(deck.cards)
+      .map((card) => migrateCardSource(card, deck))
       .filter(Boolean);
 
     if (cardUpdates.length) {
