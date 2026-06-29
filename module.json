@@ -2,7 +2,7 @@
   "id": "cards-by-kaciquehn",
   "title": "Cards by Kaciquehn",
   "description": "Additional card decks for Foundry VTT, maintained by Kaciquehn.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "authors": [
     {
       "name": "Kaciquehn",
@@ -31,6 +31,9 @@
         "ASSISTANT": "OWNER"
       }
     }
+  ],
+  "esmodules": [
+    "scripts/migrate-card-images.mjs"
   ],
   "manifest": "https://raw.githubusercontent.com/Kciquehn/Cards-by-Kaciquehn/refs/heads/main/module.json",
   "url": "https://github.com/Kciquehn/Cards-by-Kaciquehn",
