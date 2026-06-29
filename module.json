@@ -1,8 +1,9 @@
 {
   "id": "cards-by-kaciquehn",
+  "name": "cards-by-kaciquehn",
   "title": "Cards by Kaciquehn",
   "description": "Additional card decks for Foundry VTT, maintained by Kaciquehn.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "authors": [
     {
       "name": "Kaciquehn",

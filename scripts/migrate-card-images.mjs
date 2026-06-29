@@ -3,6 +3,7 @@ const NEW_PREFIX = `modules/${MODULE_ID}/images/`;
 const OLD_PREFIXES = [
   "modules/foundryvtt-cards/images/",
   "modules/FoundryVTTCards/images/",
+  "modules/Cards-by-Kaciquehn/images/",
   "modules/Cards by Kaciquehn/images/"
 ];
 
