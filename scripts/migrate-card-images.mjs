@@ -54,6 +54,80 @@ function migrateCardSource(card, deck) {
 Hooks.once("ready", async () => {
   if (!game.user?.isGM) return;
 
+  // 1. Migrate the Compendium Pack database on disk
+  const pack = game.packs.get(`${MODULE_ID}.decks`);
+  if (pack) {
+    const wasLocked = pack.locked;
+    try {
+      if (wasLocked) await pack.configure({ locked: false });
+      
+      const documents = await pack.getDocuments();
+      let compendiumUpdatedDecks = 0;
+      let compendiumUpdatedCards = 0;
+
+      for (const doc of documents) {
+        let deckChanged = false;
+        const deckImg = migratePath(doc.img);
+        if (deckImg !== doc.img) {
+          await doc.update({ img: deckImg });
+          compendiumUpdatedDecks += 1;
+        }
+
+        const cardUpdates = [];
+        for (const card of doc.cards) {
+          let changed = false;
+          const cardSource = card.toObject();
+
+          const faces = cardSource.faces.map((face) => {
+            const img = migratePath(face.img);
+            if (img !== face.img) {
+              face.img = img;
+              changed = true;
+            }
+            return face;
+          });
+
+          const back = foundry.utils.deepClone(cardSource.back ?? {});
+          const backImg = migratePath(back.img);
+          if (backImg !== back.img) {
+            back.img = backImg;
+            changed = true;
+          }
+          if (!back.img && doc.img) {
+            back.img = doc.img;
+            back.name ||= `${card.name} Back`;
+            back.text ||= "";
+            changed = true;
+          }
+
+          if (changed) {
+            cardUpdates.push({
+              _id: card.id,
+              faces,
+              back
+            });
+          }
+        }
+
+        if (cardUpdates.length) {
+          await doc.updateEmbeddedDocuments("Card", cardUpdates);
+          compendiumUpdatedCards += cardUpdates.length;
+        }
+      }
+
+      if (compendiumUpdatedDecks || compendiumUpdatedCards) {
+        ui.notifications.info(
+          `Cards by Kaciquehn: Compêndio atualizado! Corrigidos ${compendiumUpdatedDecks} baralhos e ${compendiumUpdatedCards} cartas no banco de dados local.`
+        );
+      }
+    } catch (err) {
+      console.error("Erro ao migrar compêndio:", err);
+    } finally {
+      if (wasLocked) await pack.configure({ locked: true });
+    }
+  }
+
+  // 2. Migrate existing world cards if any
   let updatedCards = 0;
   let updatedDecks = 0;
 
@@ -76,7 +150,8 @@ Hooks.once("ready", async () => {
 
   if (updatedDecks || updatedCards) {
     ui.notifications.info(
-      `Cards by Kaciquehn: updated image paths for ${updatedDecks} deck(s) and ${updatedCards} card(s).`
+      `Cards by Kaciquehn: Atualizados caminhos no mundo para ${updatedDecks} baralho(s) e ${updatedCards} carta(s).`
     );
   }
 });
+

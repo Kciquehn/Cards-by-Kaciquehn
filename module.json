@@ -1,6 +1,5 @@
 {
   "id": "cards-by-kaciquehn",
-  "name": "cards-by-kaciquehn",
   "title": "Cards by Kaciquehn",
   "description": "Additional card decks for Foundry VTT, maintained by Kaciquehn.",
   "version": "2.0.2",
@@ -24,7 +23,7 @@
     {
       "name": "decks",
       "label": "Cards by Kaciquehn",
-      "path": "packs/decks.db",
+      "path": "packs/decks",
       "type": "Cards",
       "ownership": {
         "PLAYER": "OBSERVER",
