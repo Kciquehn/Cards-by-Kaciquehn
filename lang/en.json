@@ -1,0 +1,4 @@
+{
+  "CARDSBYKACIQUEHN.MigrationComplete": "Cards by Kaciquehn: updated paths for {decks} deck(s) and {cards} card(s).",
+  "CARDSBYKACIQUEHN.MigrationFailed": "Cards by Kaciquehn could not finish updating old image paths. Check the console for details."
+}

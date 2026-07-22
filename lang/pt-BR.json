@@ -1,0 +1,4 @@
+{
+  "CARDSBYKACIQUEHN.MigrationComplete": "Cards by Kaciquehn: caminhos atualizados em {decks} baralho(s) e {cards} carta(s).",
+  "CARDSBYKACIQUEHN.MigrationFailed": "Cards by Kaciquehn não conseguiu concluir a atualização dos caminhos antigos. Consulte o console para obter detalhes."
+}

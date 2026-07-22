@@ -1,4 +1,6 @@
 const MODULE_ID = "cards-by-kaciquehn";
+const MIGRATION_SETTING = "imagePathMigration";
+const MIGRATION_VERSION = 1;
 const NEW_PREFIX = `modules/${MODULE_ID}/images/`;
 const OLD_PREFIXES = [
   "modules/foundryvtt-cards/images/",
@@ -6,6 +8,11 @@ const OLD_PREFIXES = [
   "modules/Cards-by-Kaciquehn/images/",
   "modules/Cards by Kaciquehn/images/"
 ];
+
+function isModuleImage(value) {
+  if (typeof value !== "string") return false;
+  return value.startsWith(NEW_PREFIX) || OLD_PREFIXES.some((prefix) => value.startsWith(prefix));
+}
 
 function migratePath(value) {
   if (typeof value !== "string") return value;
@@ -15,143 +22,85 @@ function migratePath(value) {
   return value;
 }
 
-function migrateCardSource(card, deck) {
-  const source = card.toObject();
-  const update = { _id: card.id };
-  let changed = false;
-
-  const faces = source.faces.map((face) => {
-    const faceSource = foundry.utils.deepClone(face);
-    const img = migratePath(faceSource.img);
-    if (img !== faceSource.img) {
-      faceSource.img = img;
-      changed = true;
-    }
-    return faceSource;
+function isModuleDeck(deck) {
+  if (isModuleImage(deck.img)) return true;
+  return Array.from(deck.cards ?? []).some((card) => {
+    if (isModuleImage(card.back?.img)) return true;
+    return Array.from(card.faces ?? []).some((face) => isModuleImage(face.img));
   });
-
-  const back = foundry.utils.deepClone(source.back ?? {});
-  const backImg = migratePath(back.img);
-  if (backImg !== back.img) {
-    back.img = backImg;
-    changed = true;
-  }
-  if (!back.img && deck.img) {
-    back.img = deck.img;
-    back.name ||= `${deck.name} Back`;
-    back.text ||= "";
-    changed = true;
-  }
-
-  if (changed) {
-    update.faces = faces;
-    update.back = back;
-  }
-
-  return changed ? update : null;
 }
 
-Hooks.once("ready", async () => {
-  if (!game.user?.isGM) return;
+function prepareCardUpdate(card, deckImg) {
+  const source = card.toObject();
+  const faces = source.faces.map((face) => {
+    const copy = foundry.utils.deepClone(face);
+    copy.img = migratePath(copy.img);
+    return copy;
+  });
+  const back = foundry.utils.deepClone(source.back ?? {});
+  back.img = migratePath(back.img);
 
-  // 1. Migrate the Compendium Pack database on disk
-  const pack = game.packs.get(`${MODULE_ID}.decks`);
-  if (pack) {
-    const wasLocked = pack.locked;
-    try {
-      if (wasLocked) await pack.configure({ locked: false });
-      
-      const documents = await pack.getDocuments();
-      let compendiumUpdatedDecks = 0;
-      let compendiumUpdatedCards = 0;
-
-      for (const doc of documents) {
-        let deckChanged = false;
-        const deckImg = migratePath(doc.img);
-        if (deckImg !== doc.img) {
-          await doc.update({ img: deckImg });
-          compendiumUpdatedDecks += 1;
-        }
-
-        const cardUpdates = [];
-        for (const card of doc.cards) {
-          let changed = false;
-          const cardSource = card.toObject();
-
-          const faces = cardSource.faces.map((face) => {
-            const img = migratePath(face.img);
-            if (img !== face.img) {
-              face.img = img;
-              changed = true;
-            }
-            return face;
-          });
-
-          const back = foundry.utils.deepClone(cardSource.back ?? {});
-          const backImg = migratePath(back.img);
-          if (backImg !== back.img) {
-            back.img = backImg;
-            changed = true;
-          }
-          if (!back.img && doc.img) {
-            back.img = doc.img;
-            back.name ||= `${card.name} Back`;
-            back.text ||= "";
-            changed = true;
-          }
-
-          if (changed) {
-            cardUpdates.push({
-              _id: card.id,
-              faces,
-              back
-            });
-          }
-        }
-
-        if (cardUpdates.length) {
-          await doc.updateEmbeddedDocuments("Card", cardUpdates);
-          compendiumUpdatedCards += cardUpdates.length;
-        }
-      }
-
-      if (compendiumUpdatedDecks || compendiumUpdatedCards) {
-        ui.notifications.info(
-          `Cards by Kaciquehn: Compêndio atualizado! Corrigidos ${compendiumUpdatedDecks} baralhos e ${compendiumUpdatedCards} cartas no banco de dados local.`
-        );
-      }
-    } catch (err) {
-      console.error("Erro ao migrar compêndio:", err);
-    } finally {
-      if (wasLocked) await pack.configure({ locked: true });
-    }
+  if (!back.img && deckImg) {
+    back.img = deckImg;
+    back.name ||= `${card.name} Back`;
+    back.text ||= "";
   }
 
-  // 2. Migrate existing world cards if any
+  const facesChanged = faces.some((face, index) => face.img !== source.faces[index]?.img);
+  const backChanged = back.img !== source.back?.img;
+  if (!facesChanged && !backChanged) return null;
+
+  return { _id: card.id, faces, back };
+}
+
+Hooks.once("init", () => {
+  game.settings.register(MODULE_ID, MIGRATION_SETTING, {
+    scope: "world",
+    config: false,
+    type: Number,
+    default: 0
+  });
+});
+
+Hooks.once("ready", async () => {
+  if (game.users.activeGM?.id !== game.user.id) return;
+  if (game.settings.get(MODULE_ID, MIGRATION_SETTING) >= MIGRATION_VERSION) return;
+
   let updatedCards = 0;
   let updatedDecks = 0;
 
-  for (const deck of game.cards ?? []) {
-    const deckImg = migratePath(deck.img);
-    if (deckImg !== deck.img) {
-      await deck.update({ img: deckImg });
-      updatedDecks += 1;
+  try {
+    for (const deck of game.cards ?? []) {
+      if (!isModuleDeck(deck)) continue;
+
+      const deckImg = migratePath(deck.img);
+      if (deckImg !== deck.img) {
+        await deck.update({ img: deckImg });
+        updatedDecks += 1;
+      }
+
+      const cardUpdates = Array.from(deck.cards ?? [])
+        .map((card) => prepareCardUpdate(card, deckImg))
+        .filter(Boolean);
+
+      if (cardUpdates.length) {
+        await deck.updateEmbeddedDocuments("Card", cardUpdates);
+        updatedCards += cardUpdates.length;
+      }
     }
 
-    const cardUpdates = Array.from(deck.cards)
-      .map((card) => migrateCardSource(card, deck))
-      .filter(Boolean);
+    await game.settings.set(MODULE_ID, MIGRATION_SETTING, MIGRATION_VERSION);
 
-    if (cardUpdates.length) {
-      await deck.updateEmbeddedDocuments("Card", cardUpdates);
-      updatedCards += cardUpdates.length;
+    if (updatedDecks || updatedCards) {
+      ui.notifications.info(
+        game.i18n.format("CARDSBYKACIQUEHN.MigrationComplete", {
+          decks: updatedDecks,
+          cards: updatedCards
+        })
+      );
     }
-  }
-
-  if (updatedDecks || updatedCards) {
-    ui.notifications.info(
-      `Cards by Kaciquehn: Atualizados caminhos no mundo para ${updatedDecks} baralho(s) e ${updatedCards} carta(s).`
-    );
+  } catch (error) {
+    console.error(`${MODULE_ID} | Image path migration failed`, error);
+    ui.notifications.error(game.i18n.localize("CARDSBYKACIQUEHN.MigrationFailed"));
   }
 });
-

@@ -1,7 +1,7 @@
 {
   "id": "cards-by-kaciquehn",
   "title": "Cards by Kaciquehn",
-  "description": "Additional card decks for Foundry VTT, maintained by Kaciquehn.",
+  "description": "Six system-agnostic, ready-to-use card decks for Foundry Virtual Tabletop, distributed through a single compendium.",
   "version": "2.0.2",
   "authors": [
     {
@@ -35,10 +35,22 @@
   "esmodules": [
     "scripts/migrate-card-images.mjs"
   ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "pt-BR",
+      "name": "Português (Brasil)",
+      "path": "lang/pt-BR.json"
+    }
+  ],
   "manifest": "https://raw.githubusercontent.com/Kciquehn/Cards-by-Kaciquehn/refs/heads/main/module.json",
   "url": "https://github.com/Kciquehn/Cards-by-Kaciquehn",
   "download": "https://github.com/Kciquehn/Cards-by-Kaciquehn/releases/latest/download/cards-by-kaciquehn.zip",
-  "readme": "README.md",
+  "readme": "https://github.com/Kciquehn/Cards-by-Kaciquehn/blob/main/README.md",
   "bugs": "https://github.com/Kciquehn/Cards-by-Kaciquehn/issues",
   "changelog": "https://github.com/Kciquehn/Cards-by-Kaciquehn/releases",
   "media": [

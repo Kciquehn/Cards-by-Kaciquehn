@@ -1,0 +1,10 @@
+{
+  "name": "cards-by-kaciquehn",
+  "version": "2.0.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/test-migration.mjs",
+    "validate": "node --check scripts/migrate-card-images.mjs && node scripts/validate.mjs && npm test"
+  }
+}
